@@ -44,6 +44,11 @@ public:
         }
     };
 
+    enum Space{
+        _HASHMAP,
+        _WORLD
+    };
+
     SpatialHashMap(int cell_width, int cell_height, int n_horizontal_cells, int n_vertical_cells) :
         m_cell_width(cell_width), m_cell_height(cell_height),
         m_horizontal_cell_count(n_horizontal_cells),
@@ -68,8 +73,8 @@ public:
             for(int y (bb.min.y()); y < std::min(m_vertical_cell_count, bb.max.y()+1); y++)
             {
                 // Ensure at least the center of the cell is within reach
-                if(!center_check || (sqrt(pow(((x*m_cell_width) + m_cell_width/2) - p_center.x(),2) +
-                      pow(((y*m_cell_height) + m_cell_height/2) - p_center.y(),2)) < p_radius))
+                if(!center_check || (pow(((x*m_cell_width) + m_cell_width/2) - p_center.x(),2) +
+                      pow(((y*m_cell_height) + m_cell_height/2) - p_center.y(),2) < p_radius*p_radius))
                 {
                     ret.push_back(QPoint(x,y));
                 }
@@ -87,45 +92,84 @@ public:
         return ret;
     }
 
-    T& getCell(QPoint p_world_space_center)
+    T& getCell(QPoint center, Space space)
     {
-        QPoint center(toHashMapCoordinates(p_world_space_center));
+        if(space == Space::_WORLD)
+            center = toHashMapCoordinates(center);
 
-        return this->operator [](center);
-    }
-
-    const T& getCell(QPoint p_world_space_center) const
-    {
-        QPoint center(toHashMapCoordinates(p_world_space_center));
-
-        return this->operator [](center);
-    }
-
-    T& operator[](const QPoint & key)
-    {
-        if(key.x() < m_horizontal_cell_count && key.y() < m_vertical_cell_count)
+        if(center.x() < m_horizontal_cell_count && center.y() < m_vertical_cell_count)
         {
-            if(m_initialised_cells.find(key) == m_initialised_cells.end())
-                init_cell(key);
+            if(m_initialised_cells.find(center) == m_initialised_cells.end())
+                init_cell(center);
 
-            return std::unordered_map<QPoint, T>::find(key)->second;
+            return std::unordered_map<QPoint, T>::find(center)->second;
         }
-
         throw OutOfRangeException();
     }
 
-    const T& operator[](const QPoint & key) const
+    const T& getCell(QPoint center, Space space) const
     {
-        if(key.x() < m_horizontal_cell_count && key.y() < m_vertical_cell_count)
+        if(space == Space::_WORLD)
+            center = toHashMapCoordinates(center);
+
+        if(center.x() < m_horizontal_cell_count && center.y() < m_vertical_cell_count)
         {
-            if(m_initialised_cells.find(key) != m_initialised_cells.end())
-                return std::unordered_map<QPoint, T>::find(key)->second;
+            if(m_initialised_cells.find(center) == m_initialised_cells.end())
+                    throw UninitialisedException();
 
-            throw UninitialisedException();
+            return std::unordered_map<QPoint, T>::find(center)->second;
         }
-
         throw OutOfRangeException();
     }
+
+//    T& operator[](const QPoint & key, bool init_if_necessary = true)
+//    {
+//        if(key.x() < m_horizontal_cell_count && key.y() < m_vertical_cell_count)
+//        {
+//            if(m_initialised_cells.find(key) == m_initialised_cells.end())
+//            {
+//                if(init_if_necessary)
+//                    init_cell(key);
+//                else
+//                    throw UninitialisedException();
+//            }
+
+//            return std::unordered_map<QPoint, T>::find(key)->second;
+//        }
+
+//        throw OutOfRangeException();
+//    }
+
+//    const T& operator[](const QPoint & key, bool init_if_necessary = true)
+//    {
+//        if(key.x() < m_horizontal_cell_count && key.y() < m_vertical_cell_count)
+//        {
+//            if(m_initialised_cells.find(key) == m_initialised_cells.end())
+//            {
+//                if(init_if_necessary)
+//                    init_cell(key);
+//                else
+//                    throw UninitialisedException();
+//            }
+
+//            return std::unordered_map<QPoint, T>::find(key)->second;
+//        }
+
+//        throw OutOfRangeException();
+//    }
+
+//    const T& operator[](const QPoint & key) const
+//    {
+//        if(key.x() < m_horizontal_cell_count && key.y() < m_vertical_cell_count)
+//        {
+//            if(m_initialised_cells.find(key) != m_initialised_cells.end())
+//                return std::unordered_map<QPoint, T>::find(key)->second;
+
+//            throw UninitialisedException();
+//        }
+
+//        throw OutOfRangeException();
+//    }
 
     bool coversMultipleCells(const QPoint & center, int radius) const
     {
