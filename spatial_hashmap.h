@@ -223,22 +223,7 @@ public:
         return initialised(toHashMapCoordinates(ws_coord));
     }
 
-private:
-    void init_cell(const QPoint & key)
-    {
-        std::unordered_map<QPoint, T>::emplace(key, T());
-        m_initialised_cells.emplace(key, true);
-    }
-
-    QPoint toHashMapCoordinates( const QPoint & coord ) const
-    {
-        QPoint ret(coord.x() / m_cell_width, coord.y() / m_cell_height);
-        if(ret.x() < m_horizontal_cell_count && ret.y() < m_vertical_cell_count)
-        {
-            return ret;
-        }
-    }
-
+protected:
     BoundingBox get_bounding_box(const QPoint & p_center, int p_radius) const
     {
         // First calculate the bounding box
@@ -255,6 +240,22 @@ private:
         bb.max = toHashMapCoordinates(maxs);
 
         return bb;
+    }
+
+    QPoint toHashMapCoordinates( const QPoint & coord ) const
+    {
+        QPoint ret(coord.x() / m_cell_width, coord.y() / m_cell_height);
+        if(ret.x() < m_horizontal_cell_count && ret.y() < m_vertical_cell_count)
+        {
+            return ret;
+        }
+    }
+
+private:
+    void init_cell(const QPoint & key)
+    {
+        std::unordered_map<QPoint, T>::emplace(key, T());
+        m_initialised_cells.emplace(key, true);
     }
 
     std::unordered_map<QPoint, bool> m_initialised_cells;
