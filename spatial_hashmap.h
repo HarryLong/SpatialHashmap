@@ -25,7 +25,7 @@ namespace std {
   };
 }
 
-template <class T> class SpatialHashMap : protected std::unordered_map<QPoint, T>{
+template <class T> class SpatialHashMap : private std::unordered_map<QPoint, T>{
 public:
     class OutOfRangeException : public std::exception
     {
@@ -235,7 +235,7 @@ protected:
 
         BoundingBox bb;
         QPoint mins(std::max(0.0f, x_min), std::max(0.0f, y_min));
-        QPoint maxs(x_max, y_max);
+        QPoint maxs(std::min(((float) getHorizontalCellCount()-1) * getCellWidth(), x_max), std::min(((float) getVerticalCellCount()-1) * getCellHeight(), y_max) );
         bb.min = toHashMapCoordinates(mins);
         bb.max = toHashMapCoordinates(maxs);
 
@@ -249,6 +249,7 @@ protected:
         {
             return ret;
         }
+        throw OutOfRangeException();
     }
 
 private:
