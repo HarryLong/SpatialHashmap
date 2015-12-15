@@ -227,15 +227,18 @@ protected:
     BoundingBox get_bounding_box(const QPoint & p_center, int p_radius) const
     {
         // First calculate the bounding box
-        float x_min(p_center.x()-p_radius);
-        float x_max(p_center.x()+p_radius);
+        int x_min(p_center.x()-p_radius);
+        int x_max(p_center.x()+p_radius);
 
-        float y_min(p_center.y()-p_radius);
-        float y_max(p_center.y()+p_radius);
+        int y_min(p_center.y()-p_radius);
+        int y_max(p_center.y()+p_radius);
+
+        int h_max((m_horizontal_cell_count-1) * m_cell_width);
+        int v_max((m_vertical_cell_count-1) * m_cell_height);
 
         BoundingBox bb;
-        QPoint mins(std::max(0.0f, x_min), std::max(0.0f, y_min));
-        QPoint maxs(std::min(((float) getHorizontalCellCount()-1) * getCellWidth(), x_max), std::min(((float) getVerticalCellCount()-1) * getCellHeight(), y_max) );
+        QPoint mins(std::min(h_max,std::max(0, x_min)), std::min(v_max, std::max(0, y_min)));
+        QPoint maxs(std::max(0, std::min(h_max, x_max)), std::max(0,std::min(v_max, y_max) ));
         bb.min = toHashMapCoordinates(mins);
         bb.max = toHashMapCoordinates(maxs);
 
